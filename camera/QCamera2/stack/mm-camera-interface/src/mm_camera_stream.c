@@ -5044,7 +5044,10 @@ int32_t mm_stream_cancel_buf(mm_stream_t * my_obj,
             memset(&arg, 0, sizeof(struct msm_camera_private_ioctl_arg));
             arg.id = MSM_CAMERA_PRIV_IOCTL_ID_RETURN_BUF;
             arg.size = sizeof(struct msm_camera_return_buf);
-            arg.ioctl_ptr = (uint32_t) &bufid;
+            /* arm64: ioctl_ptr is __u64 and pointers are 64-bit.
+             * The old (uint32_t) cast truncated the address, so the kernel
+             * received a garbage user pointer and the ioctl failed. */
+            arg.ioctl_ptr = (unsigned long) &bufid;
 
 
             rc = ioctl(my_obj->fd, VIDIOC_MSM_CAMERA_PRIVATE_IOCTL_CMD, &arg);
